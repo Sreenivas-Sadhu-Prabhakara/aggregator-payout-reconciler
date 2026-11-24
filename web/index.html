@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; form-action 'self'">
+<title>Food-aggregator payout reconciler for restaurants and cloud kitchens · Open MSME</title>
+<meta name="description" content="Reconcile delivery-aggregator settlement statements against your own order book: find short payments, commission overcharges and orders that were never settled, and see the true margin on every dish after commission.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/accent.css">
+<script src="assets/theme-init.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="./">
+      <span class="dot"></span>
+      <b>Open MSME</b>
+      <span class="tag">payout reconciler</span>
+    </a>
+    <span class="sp"></span>
+    <a class="home" href="https://sreenivas-sadhu-prabhakara.github.io/openmsme/">All tools</a>
+    <button class="themer" data-themer type="button">Theme</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">Food &amp; F&amp;B · India + Philippines</div>
+      <h1>Food-aggregator payout reconciler for restaurants and cloud kitchens</h1>
+      <p class="lede">Delivery platforms settle one lump sum after taking commission, gateway fees, packaging and tax. Import your order export and their settlement statement to see exactly what is missing, and what each dish really earns.</p>
+      <div class="who">
+        <span class="pill">Restaurants and cloud kitchens selling through delivery aggregators</span>
+        <span class="pill reg">GST TCS s.52 · s.194-O TDS</span>
+        <span class="pill">Runs on your own machine</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="cols calc">
+
+      <section class="card">
+        <h2>1 &middot; Your terms with the platform</h2>
+        <form id="terms" novalidate>
+          <div class="field">
+            <label for="aggregator">Platform name <span class="hint">goes on the dispute list</span></label>
+            <input type="text" id="aggregator" autocomplete="off" maxlength="80" placeholder="the platform you are reconciling">
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label for="commissionPct">Agreed commission <span class="hint">from your contract</span></label>
+              <div class="inp has-suf">
+                <input type="number" id="commissionPct" step="0.01" min="0" max="100" inputmode="decimal">
+                <span class="suf">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="toleranceRupees">Tolerance <span class="hint">per order</span></label>
+              <div class="inp has-pre">
+                <span class="pre">&#8377;</span>
+                <input type="number" id="toleranceRupees" step="0.01" min="0" inputmode="decimal">
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="preset">Withholding rate set</label>
+            <select id="preset"></select>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label for="gstTcsPct">GST TCS <span class="hint">s.52</span></label>
+              <div class="inp has-suf">
+                <input type="number" id="gstTcsPct" step="0.01" min="0" max="100" inputmode="decimal">
+                <span class="suf">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="tds194oPct">TDS <span class="hint">s.194-O</span></label>
+              <div class="inp has-suf">
+                <input type="number" id="tds194oPct" step="0.01" min="0" max="100" inputmode="decimal">
+                <span class="suf">%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="pgFeePct">Agreed payment-gateway fee <span class="hint">share of what the customer paid</span></label>
+            <div class="inp has-suf">
+              <input type="number" id="pgFeePct" step="0.01" min="0" max="100" inputmode="decimal">
+              <span class="suf">%</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Who pays for packaging</label>
+            <div class="seg" id="segPackaging">
+              <button type="button" data-v="yes" aria-pressed="true">The restaurant</button>
+              <button type="button" data-v="no" aria-pressed="false">The platform</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>The payment-gateway fee</label>
+            <div class="seg" id="segAudit">
+              <button type="button" data-v="no" aria-pressed="true">Accept as charged</button>
+              <button type="button" data-v="yes" aria-pressed="false">Check against the rate</button>
+            </div>
+            <p class="assumptions">Leave this on &ldquo;accept as charged&rdquo; unless your contract states a gateway rate, or every order will look short-paid.</p>
+          </div>
+
+          <div class="btnrow">
+            <button class="btn primary" type="submit">Save terms and reconcile</button>
+          </div>
+          <p class="note" id="termsMsg" hidden></p>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>2 &middot; Import the two files</h2>
+        <ol class="steps">
+          <li>Your own order export, as a CSV. One row per order, or one row per dish line with the order reference repeated.</li>
+          <li>The platform&rsquo;s settlement statement, as a CSV.</li>
+          <li>Optionally a two-column CSV of dish name and the food cost of one unit, which is what turns on the per-dish margin table.</li>
+        </ol>
+
+        <div class="field">
+          <label for="ordersFile">Order export</label>
+          <input type="file" id="ordersFile" accept=".csv,text/csv,text/plain">
+          <p class="assumptions" id="ordersNote"></p>
+        </div>
+        <div class="field">
+          <label for="settlementsFile">Settlement statement</label>
+          <input type="file" id="settlementsFile" accept=".csv,text/csv,text/plain">
+          <p class="assumptions" id="settlementsNote"></p>
+        </div>
+        <div class="field">
+          <label for="costsFile">Food cost per dish <span class="hint">optional</span></label>
+          <input type="file" id="costsFile" accept=".csv,text/csv,text/plain">
+          <p class="assumptions" id="costsNote"></p>
+        </div>
+
+        <div class="btnrow">
+          <button class="btn ghost" type="button" id="loadExample">Load a worked example</button>
+          <button class="btn ghost" type="button" id="clearAll">Clear everything</button>
+        </div>
+        <p class="note" id="importMsg" hidden></p>
+        <p class="assumptions" id="dataFile"></p>
+      </section>
+    </div>
+
+    <div class="cols">
+      <section class="card">
+        <h2>What you are owed</h2>
+
+        <div class="result-primary">
+          <div class="k">Total money owed back</div>
+          <div class="v" id="owed">&#8377;0.00</div>
+          <div class="sub" id="owedSub">Import both files to reconcile.</div>
+        </div>
+
+        <table class="breakdown" id="summary">
+          <thead>
+            <tr><th>Category</th><th class="num">Orders</th><th class="num">Amount</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <p class="note" id="integrityNote" hidden></p>
+
+        <h2>Download a category, or the dispute list</h2>
+        <div class="btnrow" id="exports"></div>
+        <p class="assumptions">The dispute list is a file for you to check and send yourself. This tool does not contact the platform, or anyone else.</p>
+      </section>
+    </div>
+
+    <div class="cols">
+      <section class="card">
+        <h2>What each dish really earns</h2>
+        <p class="assumptions" id="dishNote">Sorted worst-first by the money the dish lost over the period.</p>
+        <table class="breakdown" id="dishes">
+          <thead>
+            <tr>
+              <th>Dish</th>
+              <th class="num">Sold</th>
+              <th class="num">Net each</th>
+              <th class="num">Total net</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+
+    <div class="cols">
+      <section class="card">
+        <h2>Rows the tool could not read</h2>
+        <p class="assumptions" id="problemsNote">Nothing is dropped quietly. Anything unreadable is listed here with its line number.</p>
+        <table class="breakdown" id="problems">
+          <thead>
+            <tr><th>Where</th><th>Problem</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+
+    <div class="cols">
+      <section class="card prose">
+        <h2>How the expected payout is worked out</h2>
+        <pre><code>expected payout = gross value
+                - restaurant-funded discount
+                - commission  (agreed % x commissionable base)
+                - payment-gateway fee
+                - packaging   (only if the restaurant bears it)
+                - tax withheld (GST TCS + s.194-O TDS)</code></pre>
+        <p>The <strong>commissionable base</strong> is <code>gross value - restaurant-funded discount</code>, defined in one place in the code and used by every rule. The platform-funded discount is deliberately <em>not</em> deducted: when the platform buys a promotion for the customer, you sold at full price, and commission belongs on full price. A statement that charges commission on the pre-discount value while paying out on the post-discount value is the commonest way a payout goes wrong.</p>
+        <p>A commission overcharge is reported separately, but it is <em>not</em> added to the money owed back: because the expected payout already uses your agreed rate, every rupee of excess commission is inside the short payment. Claiming it twice would overstate the claim.</p>
+
+        <details class="assumptions">
+          <summary>Rates, constants and what to confirm yourself</summary>
+          <ul id="assumptions"></ul>
+        </details>
+
+        <div class="note">
+          This tool arithmetic-checks your own two files against the contract terms you enter. It is not tax advice, it does not read your agreement, and it cannot know a term you have not told it. Confirm every statutory rate with the authority or your accountant for the period you are reconciling, and check a claim yourself before sending it. Nothing here leaves your machine.
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span>Open MSME &middot; free tools for small businesses in India and the Philippines</span>
+    <a href="https://sreenivas-sadhu-prabhakara.github.io/openmsme/">All tools</a>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

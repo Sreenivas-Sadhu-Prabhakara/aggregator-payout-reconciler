@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; form-action 'self'">
+<title>Food-aggregator payout reconciler for restaurants and cloud kitchens · Open MSME</title>
+<meta name="description" content="Free offline tool for restaurants and cloud kitchens in India and the Philippines: reconcile delivery-aggregator settlements against your order book, find short payments and commission overcharges, and see the true margin per dish after commission.">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="Food-aggregator payout reconciler for restaurants and cloud kitchens">
+<meta property="og:description" content="Import your order export and the platform's settlement statement to find short payments, commission overcharges, unsettled orders, and the dishes that lose money after commission.">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/accent.css">
+<script src="assets/theme-init.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="./">
+      <span class="dot"></span>
+      <b>Open MSME</b>
+      <span class="tag">payout reconciler</span>
+    </a>
+    <span class="sp"></span>
+    <a class="home" href="https://sreenivas-sadhu-prabhakara.github.io/openmsme/">All tools</a>
+    <button class="themer" data-themer type="button">Theme</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">Food &amp; F&amp;B · India + Philippines</div>
+      <h1>Food-aggregator payout reconciler for restaurants and cloud kitchens</h1>
+      <p class="lede">A delivery platform settles one lump sum after deducting commission, payment-gateway fees, packaging and tax. This tool takes your order export and their settlement statement and tells you exactly what is missing, which orders were overcharged, and which dishes lose money once commission comes out.</p>
+      <div class="who">
+        <span class="pill">Restaurants and cloud kitchens selling through delivery aggregators</span>
+        <span class="pill reg">GST TCS s.52 · s.194-O TDS</span>
+        <span class="pill">Single binary, runs offline</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="cols">
+      <section class="card prose">
+        <h2>What it does</h2>
+        <p>You know the total that reached your bank. You do not know whether it is right. The statement nets off commission, a payment-gateway fee, packaging and withholding across hundreds of orders, and no owner can check that by eye.</p>
+        <p>Give the tool two CSV files — your own order export and the platform's settlement statement — and it matches them order by order, computes what each order <em>should</em> have paid from the terms in your agreement, and sorts the result into four answers:</p>
+        <ul>
+          <li><strong>Settled correctly</strong>, within a rounding tolerance you set (₹1 by default).</li>
+          <li><strong>Short-paid</strong>, with the shortfall on each order and the total.</li>
+          <li><strong>Over-paid</strong>, which matters because platforms recover overpayments from later settlements.</li>
+          <li><strong>In your books but never settled</strong> — money that never arrived at all, which is worse than being short-paid and is the easiest thing to miss.</li>
+        </ul>
+        <p>It separately flags <strong>commission overcharges</strong>: orders where the commission actually charged implies a higher percentage than your agreement allows. It reports the effective rate and the rupee impact on each one.</p>
+        <p>Then it answers the question behind the question. Using a food cost per dish that you supply, it computes the <strong>true margin on every dish after commission, packaging and withholding</strong>, and sorts the table worst-first. A dish showing a comfortable 30% margin on the menu card can lose money on every single order once a quarter of the price goes to the platform. Those dishes are the ones to reprice or delist, and they are invisible in any report the platform gives you.</p>
+
+        <h2>Who it's for</h2>
+        <p>Restaurants and cloud kitchens selling through delivery aggregators — a single outlet checking one month, or a small group reconciling several outlets one statement at a time. If you take orders through a platform that settles net of commission, this is for you. You need no accounting software: two CSV exports and the commission rate from your contract are enough.</p>
+
+        <h2>The rule it implements</h2>
+        <p>Two Indian withholding provisions apply to money a delivery platform collects on your behalf, and the tool carries both as named, editable constants.</p>
+        <p><strong>GST TCS — section 52, Central Goods and Services Tax Act, 2017.</strong> An e-commerce operator collects tax at source on the net value of taxable supplies made through it by other suppliers. The statute caps the rate at <em>one per cent</em>. One per cent combined (0.5% CGST + 0.5% SGST/UTGST, or 1% IGST) was the notified rate from 1 October 2018; Notification 15/2024-Central Tax and the matching integrated-tax notification, both dated 10 July 2024, halved it to <em>0.5% combined</em> (0.25% + 0.25%, or 0.5% IGST) with effect from that date.</p>
+        <p><strong>The carve-out that matters most to a restaurant.</strong> Restaurant service supplied through an e-commerce operator was notified under section 9(5) of the CGST Act by Notification 17/2021-Central Tax (Rate), with effect from 1 January 2022. The operator pays the GST on that supply itself, and CBIC Circular 167/23/2021-GST states that the operator is therefore <em>not</em> required to collect tax at source under section 52 on it. So for cooked-food orders the expected TCS is nil — which is exactly what the tool's default rate set assumes. TCS does still apply to anything you sell through the platform that section 9(5) does not cover, such as goods, or restaurant service at specified premises. If your statement shows a TCS line against cooked food, that is itself worth asking about.</p>
+        <p><strong>TDS — section 194-O, Income-tax Act, 1961.</strong> An e-commerce operator deducts income tax from the gross amount of sales of goods or services it facilitates for a participant. The rate is <em>0.1%</em> with effect from 1 October 2024, reduced from 1%. The lower rate assumes the platform holds your PAN; without a PAN or Aadhaar, section 206AA imposes a higher rate.</p>
+        <p><strong>For the Philippines, the tool asserts no withholding rate.</strong> The regime for online platform operators differs from the Indian one and is not a figure worth guessing, so the Philippine rate set withholds nothing and says so. Everything else still reconciles in full — commission, gateway fee, packaging, discounts and missing settlements — and if a withholding applies to you under a BIR issuance, you enter that rate and the whole calculation follows.</p>
+
+        <h2>How the expected payout is defined</h2>
+        <pre><code>expected payout = gross value
+                - restaurant-funded discount
+                - commission  (agreed % x commissionable base)
+                - payment-gateway fee
+                - packaging   (only if the restaurant bears it)
+                - tax withheld (GST TCS + s.194-O TDS)
+
+commissionable base = gross value - restaurant-funded discount</code></pre>
+        <p>The commissionable base is defined in exactly one place in the code and used by every rule. Three decisions are built into it, and each one is worth money:</p>
+        <ul>
+          <li>The <strong>platform-funded discount is not deducted</strong>. When the platform buys a promotion for the customer, you sold at full price and commission belongs on full price. A statement that charges commission on the pre-discount value while paying out on the post-discount value is the commonest way a payout goes wrong.</li>
+          <li>The <strong>restaurant-funded discount is deducted</strong>. That money was never earned, so no commission is due on it.</li>
+          <li><strong>Packaging, taxes and the delivery fee are outside the base</strong>. They are not your sale. Packaging is handled separately, as a cost only if your contract says you bear it.</li>
+        </ul>
+        <p>Both withholding rates are applied to that same base. That is a deliberate simplification and is stated as one: section 52 speaks of the net value of taxable supplies and section 194-O of the gross amount of sales, and the operator's own computation may match neither.</p>
+        <p>One more thing the tool is careful about. A commission overcharge is reported separately but is <strong>not added</strong> to the total owed back. Because the expected payout already uses your agreed rate, every rupee of excess commission is already inside the short payment. Adding it again would overstate the claim, and an overstated claim is the fastest way to lose a real one.</p>
+
+        <h2>Install &amp; run</h2>
+        <p>You need the Go toolchain once, to build it. After that it is one file you can copy anywhere.</p>
+<pre><code>git clone https://github.com/sreenivas-sadhu-prabhakara/aggregator-payout-reconciler.git
+cd aggregator-payout-reconciler
+
+# run it straight away
+go run .
+
+# or build the single binary and keep it
+go build -o aggregator-payout-reconciler .
+./aggregator-payout-reconciler
+
+# then open
+http://127.0.0.1:8080/
+
+# options
+./aggregator-payout-reconciler -addr 127.0.0.1:9000 -data /path/to/my-data.json</code></pre>
+        <p>Press <code>Ctrl-C</code> to stop it. There is a worked example built in: click <em>Load a worked example</em> to see the whole thing work before you wrestle with your own export.</p>
+
+        <h2>What it stores</h2>
+        <p>Everything lives in one JSON file on your own machine — <code>./aggregator-payout-reconciler-data.json</code> unless you pass <code>-data</code>. It holds the orders and settlement lines you imported, the food costs you entered, and your contract terms. The file is written with owner-only permissions, and written atomically, so an interrupted save never truncates good data. You can read it, edit it, back it up or delete it.</p>
+        <p>Nothing leaves the machine. The tool makes no outbound network calls of any kind: no telemetry, no analytics, no fonts or scripts from anywhere else, no update check. It listens on <code>127.0.0.1</code> only, so it is not reachable from your network, and it refuses any request that did not come from its own page. <strong>It cannot send a dispute to the platform, and does not try.</strong> The dispute list is a CSV for you to read, check and send yourself.</p>
+
+        <h2>Features</h2>
+        <div class="featgrid">
+          <div class="feat">
+            <h3>Reads the exports you actually have</h3>
+            <p>Column names are matched however the export spelled them — case, spaces, underscores, hash markers, rupee signs, currency suffixes, a byte-order mark. One row per order or one row per dish line both work.</p>
+          </div>
+          <div class="feat">
+            <h3>Never drops a row quietly</h3>
+            <p>A malformed amount, a ragged row, a stray quote or a missing reference is reported with its line number and the offending cell, and the rest of the file still imports. Nothing fails silently and nothing panics.</p>
+          </div>
+          <div class="feat">
+            <h3>Matches references that disagree</h3>
+            <p>The two files write the same order differently. Hash markers, stray spaces and case are stripped; hyphens, slashes and underscores are kept, because dropping them would merge genuinely different orders.</p>
+          </div>
+          <div class="feat">
+            <h3>One headline number</h3>
+            <p>Total money owed back: the shortfall on settled orders plus the whole expected payout of orders that were never settled. Counted once, never twice.</p>
+          </div>
+          <div class="feat">
+            <h3>Commission audited per order</h3>
+            <p>The effective commission rate on every order, measured against your agreed rate, with the rupee impact. An order charged exactly at the agreed rate is never flagged.</p>
+          </div>
+          <div class="feat">
+            <h3>Both directions of missing</h3>
+            <p>Orders in your books with no settlement line, and settlement lines with no order in your books. The first is money owed; the second usually means your own records are incomplete.</p>
+          </div>
+          <div class="feat">
+            <h3>True margin per dish</h3>
+            <p>Menu price less food cost, commission, the dish's share of packaging and withholding. Sorted worst-first, flagging dishes that look profitable on the menu card and lose money on the platform.</p>
+          </div>
+          <div class="feat">
+            <h3>Exports for every category</h3>
+            <p>Each category as its own CSV, plus a dispute list with the arithmetic shown line by line and a total, ready for you to check and send. Amounts are plain decimals a spreadsheet reads as numbers.</p>
+          </div>
+          <div class="feat">
+            <h3>Rates you can correct</h3>
+            <p>Every statutory rate is one named constant with a documented source, and every one is editable in the form. When a notification changes a rate, you change a number.</p>
+          </div>
+        </div>
+
+        <h2>How you use it</h2>
+        <ol class="steps">
+          <li>Enter the commission rate from your agreement with the platform, and pick a withholding rate set. The tool never invents your commission rate.</li>
+          <li>Import your order export and the platform's settlement statement. Add a two-column CSV of dish and food cost per unit to turn on the margin table.</li>
+          <li>Read the total owed back, then the categories beneath it, then the rows the tool could not read.</li>
+          <li>Download the dispute list, check it against your own records, and send it yourself.</li>
+          <li>Read the dish table. The repricing decision it suggests is usually worth more than the disputed amount.</li>
+        </ol>
+
+        <div class="note">
+          This tool arithmetic-checks your own two files against the contract terms you enter. It is not tax advice, it does not read your agreement, and it cannot know a term you have not told it. Statutory rates change: the figures above carry the dates and notification numbers they come from, but you should confirm the rate in force for the period you are reconciling with the authority or your accountant, and the tool lets you override every one. A variance is a question to ask the platform, not proof of anything — check a claim yourself before you send it.
+        </div>
+
+        <p>Open source under the MIT licence. No account, no sign-up, no data collection.</p>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span>Open MSME &middot; free tools for small businesses in India and the Philippines</span>
+    <a href="https://sreenivas-sadhu-prabhakara.github.io/openmsme/">All tools</a>
+  </div>
+</footer>
+
+<script src="assets/ui.js"></script>
+</body>
+</html>
